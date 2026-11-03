@@ -1,14 +1,16 @@
+// components/auth/SignupForm.tsx
 // Formulario de registro (Pasos 1.5 y 1.5b). Corre en el navegador ("use client") porque usa estado para mostrar errores y "enviando".
 // Al enviarlo llama a signupAction (features/auth/actions.ts), que corre en el servidor.
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
 import FormField from "@/components/ui/FormField";
-import { signupAction, type SignupState } from "@/features/auth/actions";
+import { signUpAction } from "@/features/auth/actions";
+import type { FormState } from "@/lib/result";
 
 export default function SignupForm() {
   // state = lo que devolvió la última vez la action; formAction = lo que se le pasa al <form>; pending = está enviando
-  const [state, formAction, pending] = useActionState<SignupState, FormData>(signupAction, null);
+  const [state, formAction, pending] = useActionState<FormState, FormData>(signUpAction, {});
   const formRef = useRef<HTMLFormElement>(null);
 
   // Accesibilidad: cuando la action devuelve errores, el foco va al primer campo con error
@@ -26,8 +28,8 @@ export default function SignupForm() {
         autoCapitalize="none"
         spellCheck={false}
         required
-        defaultValue={state?.email} // React 19 vacía el formulario tras enviarlo; así el correo no se pierde
-        error={state?.fieldErrors?.email?.[0]}
+        defaultValue={state.values?.email} // React 19 vacía el formulario tras enviarlo; así el correo no se pierde
+        error={state.fieldErrors?.email?.[0]}
       />
 
       <FormField
@@ -37,7 +39,7 @@ export default function SignupForm() {
         autoComplete="new-password"
         required
         hint="Entre 8 y 72 caracteres."
-        error={state?.fieldErrors?.password?.[0]}
+        error={state.fieldErrors?.password?.[0]}
       />
 
       <FormField
@@ -46,12 +48,18 @@ export default function SignupForm() {
         type="password"
         autoComplete="new-password"
         required
-        error={state?.fieldErrors?.confirmPassword?.[0]}
+        error={state.fieldErrors?.confirmPassword?.[0]}
       />
 
-      {state?.message && (
+      {state.message && (
         <p role="alert" className="rounded-button border border-line p-3 text-sm font-semibold">
           {state.message}
+        </p>
+      )}
+
+      {state.success && (
+        <p role="status" className="rounded-button border border-line p-3 text-sm font-semibold">
+          {state.success}
         </p>
       )}
 

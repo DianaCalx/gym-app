@@ -1,68 +1,51 @@
-// Server Actions de cuenta (Paso 1.5). Corren en el servidor, pero el formulario del navegador las llama como si fueran una función.
-// Es la puerta de entrada: valida con el schema, habla con Supabase Auth y decide a dónde va el usuario.
+// features/auth/actions.ts
+// Puerta de entrada desde los formularios de registro e inicio de sesión:
+// FormData → service → redirect o errores de vuelta al formulario.
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
-import { signupSchema } from "./schemas";
+import { getString } from "@/lib/form";
+import type { FormState } from "@/lib/result";
+import { authService } from "./service";
 
-// Lo que la action devuelve al formulario cuando algo no sale bien (null = todavía no se envió nada)
-export type SignupState = {
-  message?: string; // aviso general, por ejemplo "ese correo ya tiene cuenta"
-  fieldErrors?: { email?: string[]; password?: string[]; confirmPassword?: string[] }; // errores de cada campo
-  email?: string; // para no borrar el correo que el usuario escribió
-} | null;
+export async function signInAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const result = await authService.signIn(Object.fromEntries(formData));
 
-export async function signupAction(_prevState: SignupState, formData: FormData): Promise<SignupState> {
-  const email = String(formData.get("email") ?? "");
-
-  // 1) Forma del dato: el navegador no es de fiar, aquí se valida de verdad
-  const parsed = signupSchema.safeParse({
-    email,
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-  });
-  if (!parsed.success) {
-    return { fieldErrors: z.flattenError(parsed.error).fieldErrors, email };
+  if (!result.ok) {
+    return {
+      fieldErrors: result.fieldErrors,
+      message: result.message,
+      code: result.code,
+      values: { email: getString(formData, "email") }, // la contraseña NUNCA se devuelve
+    };
   }
 
-  // 2) Crear la cuenta en Supabase Auth
-  const supabase = await createClient();
-  // confirmPassword solo sirve para comparar: a Supabase se le envía únicamente correo y contraseña
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  });
-
-  if (error) {
-    return { message: describeSignupError(error.code), email };
-  }
-
-  // Con "Confirm email" activado Supabase crea la cuenta pero no abre sesión (llega en la Fase 2)
-  if (!data.session) {
-    return { message: "Te enviamos un correo para confirmar tu cuenta.", email };
-  }
-
-  // 3) Con sesión abierta, redirect() navega al destino. Va fuera de try/catch porque funciona lanzando una excepción interna
-  redirect("/");
+  // La pantalla cambia según haya sesión o no: se invalida todo el árbol de layouts, no una ruta puntual
+  revalidatePath("/", "layout");
+  redirect("/"); // fuera de cualquier try/catch; provisional hasta que exista /routines (Paso 1.7)
 }
 
-// Traduce el código de error de Supabase a un mensaje que la persona entienda
-function describeSignupError(code: string | undefined): string {
-  switch (code) {
-    case "user_already_exists":
-    case "email_exists":
-      return "Ese correo ya tiene una cuenta. Inicia sesión.";
-    case "weak_password":
-      return "Esa contraseña es muy débil o ya apareció en filtraciones. Prueba con otra.";
-    case "email_address_invalid":
-      return "Ese correo no es válido. Prueba con otro.";
-    case "over_request_rate_limit":
-    case "over_email_send_rate_limit":
-      return "Demasiados intentos. Espera unos minutos y vuelve a intentar.";
-    default:
-      console.error("signUp falló con el código:", code); // queda en la terminal del servidor, no en la pantalla
-      return "No pudimos crear la cuenta. Intenta de nuevo.";
+export async function signUpAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const result = await authService.signUp(Object.fromEntries(formData));
+
+  if (!result.ok) {
+    return {
+      fieldErrors: result.fieldErrors,
+      message: result.message,
+      values: { email: getString(formData, "email") },
+    };
   }
+
+  // Con "Confirm email" activado Supabase crea la cuenta pero no abre sesión.
+  // En la Fase 2 esto pasa a redirect("/verify-email"); mientras tanto se avisa en el mismo formulario.
+  if (result.data.needsEmailConfirmation) {
+    return {
+      success: "Te enviamos un correo para confirmar tu cuenta.",
+      values: { email: getString(formData, "email") },
+    };
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/");
 }

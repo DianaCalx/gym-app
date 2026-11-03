@@ -1,3 +1,4 @@
+// proxy.ts
 // Proxy de la app (Paso 1.3): código que Next ejecuta ANTES de dibujar cada página.
 // Hace dos cosas: renueva la sesión del usuario y manda a /login a quien no ha entrado.
 // Usa el mismo patrón getAll/setAll que lib/supabase/server.ts, pero sobre la petición y la respuesta de Next.

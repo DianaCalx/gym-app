@@ -1,3 +1,4 @@
+// components/ui/FormField.tsx
 // Campo de formulario reutilizable (Paso 1.5b). Reúne en un solo lugar las buenas prácticas de accesibilidad:
 // etiqueta visible enlazada al campo, ayuda antes del error, error enlazado con aria-describedby y aria-invalid.
 // Lo usan todos los formularios de la app (registro, login, rutinas...).

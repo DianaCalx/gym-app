@@ -1,5 +1,6 @@
+// lib/supabase/client.ts
 // Cliente de Supabase para el NAVEGADOR (Paso 0.6b). Una función que arma el objeto con el
-// que los componentes con "use client" hablan con tu proyecto. El cliente del servidor llega en la Fase 1.
+// que los componentes con "use client" hablan con tu proyecto. El cliente del servidor está en server.ts.
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {

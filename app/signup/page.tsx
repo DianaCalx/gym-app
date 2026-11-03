@@ -1,3 +1,4 @@
+// app/signup/page.tsx
 // Pantalla "/signup" (Paso 1.5): crear una cuenta. Es pública (está en PUBLIC_PATHS de proxy.ts).
 // Corre en el servidor y solo arma la pantalla; el formulario interactivo es SignupForm.
 import Link from "next/link";

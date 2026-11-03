@@ -1,3 +1,4 @@
+// lib/supabase/server.ts
 // Cliente de Supabase para el SERVIDOR (Paso 1.2). Lo usan las páginas, las actions y los route handlers.
 // A diferencia de client.ts (navegador), aquí las cookies no existen solas: hay que leerlas de la petición.
 import { createServerClient } from "@supabase/ssr";
