@@ -22,7 +22,9 @@ Este proyecto se trabaja con la metodología de construcción guiada. La fuente 
 - Build, instalación, producción y despliegue los corre el usuario: déjalos en un bloque "⌨️ Corre tú" (qué hace, qué esperar, qué pegar). No los ejecutes.
 - Cada fase abre y cierra con un "Resumen en simple" (§7). Nada se da por sabido: define todo término técnico la primera vez que aparece (II-23).
 - Sin preguntas de comprobación: cierra cada paso explicando el tema ("Lo que te llevas").
-- Cada pieza de base de datos, backend o frontend: cuarteto qué · por qué · cómo · para qué (II-26), traza de un dato real (II-27), 3 niveles de profundidad (II-29), "📍 Estás aquí" y "Conecta con" (II-35). Mantén `docs/mapa-relaciones.md` y las fichas de `docs/conceptos/` al día.
+- Cada pieza de base de datos, backend o frontend: cuarteto qué · por qué · cómo · para qué (II-26), traza de un dato real (II-27), 3 niveles de profundidad (II-29), "📍 Estás aquí" y "Conecta con" (II-35). Mantén `docs/modelo-datos.md`, `docs/mapa-relaciones.md` y las fichas de `docs/conceptos/` al día.
+- La parada sigue la estructura fija de §4 de la plantilla (Título y estado, 📍 Estás aquí, La idea, Qué cambió, Cómo funciona, El recorrido de un dato, Por qué así, Qué puede fallar, Verificación, Lo que te llevas, Para seguir) y sus reglas de redacción: conclusión primero, un párrafo una idea, término nuevo con su definición al lado, frases completas, tablas solo para comparar, sin repetir. Antes de enviar, haz la prueba de lectura.
+- Si el paso toca la base de datos, actualiza `docs/modelo-datos.md` (tablas dibujadas, relaciones en español y ficha por tabla) en el mismo turno.
 - Documentación solo en `docs/`, escrita en el mismo turno.
 - Funciones que se repiten entre proyectos (p. ej. inicio de sesión con Google, M-1): usa la receta de la Parte IV de `docs/plantilla-construccion-guiada.md`, sin saltarte el protocolo (paradas, 🙋, verificación en documentación).
 - Ejemplos y trazas sin nombres propios: el ejemplo conductor es "el usuario" (II-27). Tono sobrio de adulto, sin personajes inventados ni cuentos.
