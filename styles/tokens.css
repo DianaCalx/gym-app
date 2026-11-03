@@ -1,0 +1,60 @@
+/*
+  Tokens de diseño de gym-app: todos los colores, radios y sombras con nombre.
+  Aquí se DEFINEN los valores; app/globals.css los conecta con las clases de Tailwind.
+  Por defecto: modo oscuro + acento lima. Se cambia con atributos en <html>:
+    data-theme="light"               -> modo claro
+    data-accent="orange" | "violet"  -> otro color de acento (sin atributo = lima)
+*/
+
+/* Por defecto: oscuro + acento lima */
+:root {
+  color-scheme: dark; /* controles del navegador (inputs, scroll) también en oscuro */
+
+  --bg: #0b0d10;
+  --surface: #151a20;
+  --text: #f2f4f7;
+  --muted: #8b95a3;
+  --line: #242b34;
+
+  --accent: #c6ff3d;
+  --on-accent: #0b0d10; /* color del texto que va SOBRE el acento (botón) */
+  --accent-text: var(--accent); /* acento usado como color de texto */
+
+  --r-chip: 999px;
+  --r-card: 1rem;
+  --r-button: 0.875rem;
+
+  --sh-card: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+/* Modo claro: cambian los neutros y el acento-como-texto (la lima pura no se lee sobre blanco) */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #0b0d10;
+  --muted: #5b6673;
+  --line: #dde2e8;
+
+  --accent-text: #5a8a00;
+
+  --sh-card: 0 4px 16px rgb(11 13 16 / 0.08);
+}
+
+/* Acentos alternativos (la lima es el de por defecto, definido arriba) */
+:root[data-accent="orange"] {
+  --accent: #ff6a2b;
+}
+:root[data-accent="violet"] {
+  --accent: #8b5cf6;
+  --on-accent: #ffffff;
+}
+
+/* Acento como texto en modo claro: versión más oscura de cada color para contrastar sobre blanco */
+:root[data-theme="light"][data-accent="orange"] {
+  --accent-text: #d94a0b;
+}
+:root[data-theme="light"][data-accent="violet"] {
+  --accent-text: #6d3fe0;
+}
