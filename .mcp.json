@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "supabase-gym": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=ronwdmgwpcggostznmiw&read_only=true"
+    }
+  }
+}
