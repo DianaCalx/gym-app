@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# documentación de estudio (construcción guiada): material personal, no se sube
+/docs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
