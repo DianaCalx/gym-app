@@ -8,6 +8,9 @@ import { NextResponse, type NextRequest } from "next/server";
 // Rutas que se pueden ver sin sesión (el resto exige haber entrado)
 const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/auth"];
 
+// Pantallas solo para quien aún no entró: con sesión iniciada se redirigen a /routines
+const AUTH_PAGES = ["/login", "/signup"];
+
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -48,6 +51,18 @@ export async function proxy(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.search = "";
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Con sesión, /login y /signup no tienen sentido: se manda a /routines.
+  // (/auth/* no entra aquí: el retorno de Google debe poder abrirse con sesión.)
+  if (isLoggedIn && AUTH_PAGES.includes(path)) {
+    const routinesUrl = request.nextUrl.clone();
+    routinesUrl.pathname = "/routines";
+    routinesUrl.search = "";
+    const redirectResponse = NextResponse.redirect(routinesUrl);
+    // Si getClaims() acaba de renovar la sesión, esas cookies están en `response`: se copian a la redirección
+    response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+    return redirectResponse;
   }
 
   // Se devuelve la respuesta que armó setAll tal cual: si se crea otra, se pierden las cookies renovadas
