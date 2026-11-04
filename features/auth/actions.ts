@@ -23,7 +23,7 @@ export async function signInAction(_prevState: FormState, formData: FormData): P
 
   // La pantalla cambia según haya sesión o no: se invalida todo el árbol de layouts, no una ruta puntual
   revalidatePath("/", "layout");
-  redirect("/"); // fuera de cualquier try/catch; provisional hasta que exista /routines (Paso 1.7)
+  redirect("/routines"); // fuera de cualquier try/catch
 }
 
 export async function signUpAction(_prevState: FormState, formData: FormData): Promise<FormState> {
@@ -47,5 +47,5 @@ export async function signUpAction(_prevState: FormState, formData: FormData): P
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/routines");
 }

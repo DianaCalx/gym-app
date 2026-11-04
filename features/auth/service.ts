@@ -7,6 +7,7 @@ import type { AuthError } from "@supabase/supabase-js";
 import type { Result } from "@/lib/result";
 import { authRepository } from "./repository";
 import { signInSchema, signUpSchema } from "./schemas";
+import type { AuthUser } from "./types";
 
 // error.code de Supabase → mensaje en español
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -57,5 +58,9 @@ export const authService = {
     if (error) return { ok: false, message: toFriendlyMessage(error) };
 
     return { ok: true, data: { needsEmailConfirmation } };
+  },
+
+  getCurrentUser(): Promise<AuthUser | null> {
+    return authRepository.getCurrentUser();
   },
 };
