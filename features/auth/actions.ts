@@ -26,6 +26,15 @@ export async function signInAction(_prevState: FormState, formData: FormData): P
   redirect("/routines"); // fuera de cualquier try/catch
 }
 
+// Se usa directo como <form action={signOutAction}>: no recibe estado previo ni devuelve nada
+export async function signOutAction(): Promise<void> {
+  // Aunque el aviso al servidor de Supabase fallara, la sesión local ya se borró (scope "local"): se sale igual
+  await authService.signOut();
+
+  revalidatePath("/", "layout");
+  redirect("/login");
+}
+
 export async function signUpAction(_prevState: FormState, formData: FormData): Promise<FormState> {
   const result = await authService.signUp(Object.fromEntries(formData));
 

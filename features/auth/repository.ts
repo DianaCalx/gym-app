@@ -19,6 +19,14 @@ export const authRepository = {
     return { needsEmailConfirmation: !data.session, error };
   },
 
+  // scope "local": cierra solo esta sesión. El valor por defecto de Supabase es "global" (cierra todos los dispositivos).
+  // Con "local" la sesión se borra aquí antes de avisar al servidor, así que cerrar sesión no depende de la red.
+  async signOut() {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    return { error };
+  },
+
   // Quién es el usuario según la cookie. getClaims() verifica la firma del token (no es solo leer la cookie).
   async getCurrentUser(): Promise<AuthUser | null> {
     const supabase = await createClient();

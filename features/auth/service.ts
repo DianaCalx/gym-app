@@ -60,6 +60,12 @@ export const authService = {
     return { ok: true, data: { needsEmailConfirmation } };
   },
 
+  async signOut(): Promise<Result> {
+    const { error } = await authRepository.signOut();
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+    return { ok: true, data: null };
+  },
+
   getCurrentUser(): Promise<AuthUser | null> {
     return authRepository.getCurrentUser();
   },
