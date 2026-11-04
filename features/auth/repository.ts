@@ -19,6 +19,26 @@ export const authRepository = {
     return { needsEmailConfirmation: !data.session, error };
   },
 
+  // Pide a Supabase la dirección de Google a la que hay que mandar al usuario. Supabase guarda el secreto PKCE
+  // en una cookie (setAll) y devuelve la URL; no sale a Google desde aquí: eso lo hace el navegador al seguirla.
+  // redirectTo debe estar en la lista de Redirect URLs del panel de Supabase, o Supabase no devolverá a la app.
+  async signInWithGoogle(redirectTo: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+    return { url: data.url, error };
+  },
+
+  // Cambia el código de un solo uso (?code=...) por la sesión. Supabase lo presenta junto con el secreto PKCE
+  // que dejó en una cookie al salir hacia Google, y escribe las cookies de sesión (setAll de lib/supabase/server.ts).
+  async exchangeCodeForSession(code: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    return { error };
+  },
+
   // scope "local": cierra solo esta sesión. El valor por defecto de Supabase es "global" (cierra todos los dispositivos).
   // Con "local" la sesión se borra aquí antes de avisar al servidor, así que cerrar sesión no depende de la red.
   async signOut() {

@@ -11,6 +11,27 @@ export const signInSchema = z.object({
   password: z.string("Escribe tu contraseña").min(1, "Escribe tu contraseña"),
 });
 
+// ¿Es un origen http(s) exacto, como "http://localhost:3000" o "https://miapp.com"? (sin ruta, sin barra final)
+// NOTA: z.httpUrl() de Zod no sirve aquí: rechaza "localhost" porque exige un dominio con punto.
+function isHttpOrigin(value: string) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:") && url.origin === value;
+  } catch {
+    return false; // texto que no es una URL
+  }
+}
+
+// El sitio desde el que se pidió entrar con Google. Con él se arma la dirección de vuelta (origin + /auth/callback).
+export const oauthStartSchema = z.object({
+  origin: z.string("No se pudo detectar el sitio").refine(isHttpOrigin, "No se pudo detectar el sitio"),
+});
+
+// El código que Supabase pone en la URL al volver de Google (?code=...). Si falta o viene vacío, no hay nada que canjear.
+export const oauthCodeSchema = z.object({
+  code: z.string("Falta el código de Google").min(1, "Falta el código de Google"),
+});
+
 export const signUpSchema = z
   .object({
     email: emailRule,

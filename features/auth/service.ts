@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { AuthError } from "@supabase/supabase-js";
 import type { Result } from "@/lib/result";
 import { authRepository } from "./repository";
-import { signInSchema, signUpSchema } from "./schemas";
+import { oauthCodeSchema, oauthStartSchema, signInSchema, signUpSchema } from "./schemas";
 import type { AuthUser } from "./types";
 
 // error.code de Supabase → mensaje en español
@@ -58,6 +58,35 @@ export const authService = {
     if (error) return { ok: false, message: toFriendlyMessage(error) };
 
     return { ok: true, data: { needsEmailConfirmation } };
+  },
+
+  // Ida a Google: valida el sitio de origen, arma la dirección de vuelta y pide a Supabase la URL de Google.
+  // Devuelve esa URL; la action es quien redirige al navegador (redirect es de Next, no del service).
+  async signInWithGoogle(input: unknown): Promise<Result<{ url: string }>> {
+    const parsed = oauthStartSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, message: "No se pudo iniciar con Google. Inténtalo de nuevo." };
+    }
+
+    const redirectTo = `${parsed.data.origin}/auth/callback`; // la ruta del Paso 1.9
+    const { url, error } = await authRepository.signInWithGoogle(redirectTo);
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+    if (!url) return { ok: false, message: "No se pudo iniciar con Google. Inténtalo de nuevo." };
+
+    return { ok: true, data: { url } };
+  },
+
+  // Vuelta de Google: valida que haya código y lo canjea por la sesión. La ruta decide a dónde redirigir.
+  async completeOAuth(code: unknown): Promise<Result> {
+    const parsed = oauthCodeSchema.safeParse({ code });
+    if (!parsed.success) {
+      return { ok: false, message: "No se pudo completar el inicio de sesión con Google." };
+    }
+
+    const { error } = await authRepository.exchangeCodeForSession(parsed.data.code);
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+
+    return { ok: true, data: null };
   },
 
   async signOut(): Promise<Result> {
