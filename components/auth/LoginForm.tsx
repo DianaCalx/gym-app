@@ -3,6 +3,7 @@
 // Al enviarlo llama a signInAction (features/auth/actions.ts), que corre en el servidor. Reutiliza FormField (II-38).
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import FormField from "@/components/ui/FormField";
 import { signInAction } from "@/features/auth/actions";
@@ -44,6 +45,13 @@ export default function LoginForm() {
         <p role="alert" className="rounded-button border border-line p-3 text-sm font-semibold">
           {state.message}
         </p>
+      )}
+
+      {/* "email_not_confirmed" viene del service (signIn): la cuenta existe pero falta confirmar el correo */}
+      {state.code === "email_not_confirmed" && (
+        <Link href="/verify-email" className="text-sm font-semibold text-accent-text">
+          Reenviar correo de confirmación
+        </Link>
       )}
 
       <button
