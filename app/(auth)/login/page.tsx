@@ -37,6 +37,12 @@ export default async function LoginPage({
       </section>
 
       <p className="text-sm text-muted">
+        <Link href="/forgot-password" className="font-semibold text-accent-text">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
+
+      <p className="text-sm text-muted">
         ¿No tienes cuenta?{" "}
         <Link href="/signup" className="font-semibold text-accent-text">
           Crea una

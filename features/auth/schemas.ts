@@ -42,6 +42,9 @@ export const emailTokenSchema = z.object({
 // El correo al que se reenvía el enlace de confirmación (pantalla /verify-email). Solo se pide el correo: no hay sesión.
 export const resendEmailSchema = z.object({ email: emailRule });
 
+// El correo de quien olvidó su contraseña (pantalla /forgot-password). Igual que el reenvío: sin sesión, solo el correo.
+export const forgotPasswordSchema = z.object({ email: emailRule });
+
 export const signUpSchema = z
   .object({
     email: emailRule,

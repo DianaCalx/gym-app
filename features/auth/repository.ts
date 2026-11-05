@@ -57,6 +57,15 @@ export const authRepository = {
     return { error };
   },
 
+  // Pide a Supabase el correo de recuperación de contraseña. Si el correo no tiene cuenta, Supabase responde igual (200)
+  // y no envía nada. No se pasa redirectTo: a dónde llega el usuario lo define la plantilla "Reset password" del panel
+  // (/auth/confirm?...&type=recovery&next=/reset-password), que usa la ruta del Paso 2.3.
+  async sendPasswordReset(email: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    return { error };
+  },
+
   // scope "local": cierra solo esta sesión. El valor por defecto de Supabase es "global" (cierra todos los dispositivos).
   // Con "local" la sesión se borra aquí antes de avisar al servidor, así que cerrar sesión no depende de la red.
   async signOut() {

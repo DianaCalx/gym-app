@@ -8,6 +8,7 @@ import type { Result } from "@/lib/result";
 import { authRepository } from "./repository";
 import {
   emailTokenSchema,
+  forgotPasswordSchema,
   oauthCodeSchema,
   oauthStartSchema,
   resendEmailSchema,
@@ -120,6 +121,19 @@ export const authService = {
     }
 
     const { error } = await authRepository.resendConfirmation(parsed.data.email);
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+
+    return { ok: true, data: null };
+  },
+
+  // "Olvidé mi contraseña": éxito = "se pidió el envío", no "la cuenta existe". La action responde lo mismo en los dos casos.
+  async requestPasswordReset(input: unknown): Promise<Result> {
+    const parsed = forgotPasswordSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
+    }
+
+    const { error } = await authRepository.sendPasswordReset(parsed.data.email);
     if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
 
     return { ok: true, data: null };
