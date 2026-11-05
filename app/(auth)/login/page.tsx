@@ -24,6 +24,13 @@ export default async function LoginPage({
         </p>
       )}
 
+      {/* app/auth/confirm/route.ts redirige aquí con ?error=confirmation si el enlace del correo venció, ya se usó o es inválido */}
+      {error === "confirmation" && (
+        <p role="alert" className="rounded-button border border-line p-3 text-sm font-semibold">
+          El enlace de confirmación no es válido o ya venció. Si ya confirmaste tu correo, inicia sesión.
+        </p>
+      )}
+
       <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card">
         <LoginForm />
         <GoogleButton />

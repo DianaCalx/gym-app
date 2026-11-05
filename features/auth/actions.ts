@@ -59,14 +59,9 @@ export async function signUpAction(_prevState: FormState, formData: FormData): P
     };
   }
 
-  // Con "Confirm email" activado Supabase crea la cuenta pero no abre sesión.
-  // En la Fase 2 esto pasa a redirect("/verify-email"); mientras tanto se avisa en el mismo formulario.
-  if (result.data.needsEmailConfirmation) {
-    return {
-      success: "Te enviamos un correo para confirmar tu cuenta.",
-      values: { email: getString(formData, "email") },
-    };
-  }
+  // Con "Confirm email" activado Supabase crea la cuenta pero no abre sesión: se manda a "Revisa tu correo".
+  // El correo NO viaja en la URL: la página es la misma para todos y no revela si la cuenta ya existía.
+  if (result.data.needsEmailConfirmation) redirect("/verify-email"); // fuera de cualquier try/catch
 
   revalidatePath("/", "layout");
   redirect("/routines");
