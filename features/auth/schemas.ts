@@ -39,6 +39,9 @@ export const emailTokenSchema = z.object({
   type: z.enum(["email", "signup", "recovery"], "El tipo de enlace no es válido"),
 });
 
+// El correo al que se reenvía el enlace de confirmación (pantalla /verify-email). Solo se pide el correo: no hay sesión.
+export const resendEmailSchema = z.object({ email: emailRule });
+
 export const signUpSchema = z
   .object({
     email: emailRule,

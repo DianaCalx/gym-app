@@ -48,6 +48,15 @@ export const authRepository = {
     return { error };
   },
 
+  // Pide a Supabase otro correo de confirmación ("signup"). Si el correo no existe o ya está confirmado, Supabase responde
+  // igual que si todo hubiera ido bien (200) y no envía nada: así no revela qué cuentas existen.
+  // Supabase también pone los límites: 1 solicitud por minuto por usuario y 30 por 5 minutos por IP.
+  async resendConfirmation(email: string) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    return { error };
+  },
+
   // scope "local": cierra solo esta sesión. El valor por defecto de Supabase es "global" (cierra todos los dispositivos).
   // Con "local" la sesión se borra aquí antes de avisar al servidor, así que cerrar sesión no depende de la red.
   async signOut() {

@@ -39,6 +39,20 @@ export async function signInWithGoogleAction(): Promise<FormState> {
   redirect(result.data.url); // URL externa (accounts.google.com, vía Supabase); fuera de cualquier try/catch
 }
 
+// Formulario "¿No te llegó?" de /verify-email. No redirige: se queda en la pantalla y muestra el resultado.
+export async function resendConfirmationAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const result = await authService.resendConfirmation(Object.fromEntries(formData));
+  const values = { email: getString(formData, "email") };
+
+  if (!result.ok) return { fieldErrors: result.fieldErrors, message: result.message, code: result.code, values };
+
+  // El mismo texto exista o no la cuenta: no se revela qué correos están registrados
+  return {
+    success: "Si ese correo tiene una cuenta sin confirmar, te enviamos un enlace nuevo. Puedes pedir otro en un minuto.",
+    values,
+  };
+}
+
 // Se usa directo como <form action={signOutAction}>: no recibe estado previo ni devuelve nada
 export async function signOutAction(): Promise<void> {
   // Aunque el aviso al servidor de Supabase fallara, la sesión local ya se borró (scope "local"): se sale igual

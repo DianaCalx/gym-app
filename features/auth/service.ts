@@ -6,7 +6,14 @@ import { z } from "zod";
 import type { AuthError } from "@supabase/supabase-js";
 import type { Result } from "@/lib/result";
 import { authRepository } from "./repository";
-import { emailTokenSchema, oauthCodeSchema, oauthStartSchema, signInSchema, signUpSchema } from "./schemas";
+import {
+  emailTokenSchema,
+  oauthCodeSchema,
+  oauthStartSchema,
+  resendEmailSchema,
+  signInSchema,
+  signUpSchema,
+} from "./schemas";
 import type { AuthUser } from "./types";
 
 // error.code de Supabase → mensaje en español
@@ -99,6 +106,20 @@ export const authService = {
     }
 
     const { error } = await authRepository.verifyEmailToken(parsed.data.tokenHash, parsed.data.type);
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+
+    return { ok: true, data: null };
+  },
+
+  // Reenvío del correo de confirmación. Éxito = "se pidió el envío", no "el correo existe": la action responde lo mismo
+  // exista o no la cuenta. Lo único que se avisa es el límite de envíos (over_email_send_rate_limit).
+  async resendConfirmation(input: unknown): Promise<Result> {
+    const parsed = resendEmailSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
+    }
+
+    const { error } = await authRepository.resendConfirmation(parsed.data.email);
     if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
 
     return { ok: true, data: null };

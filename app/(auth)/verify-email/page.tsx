@@ -2,7 +2,9 @@
 // Pantalla "/verify-email" (Paso 2.4): "Revisa tu correo". A ella llega signUpAction cuando la cuenta se creó pero
 // aún no está confirmada. Es pública (está en PUBLIC_PATHS de proxy.ts) porque quien llega aquí todavía no tiene sesión.
 // Corre en el servidor y no recibe datos: el texto es el mismo para todos, así no revela si el correo ya tenía cuenta.
+// Desde el Paso 2.5 incluye el formulario para reenviar el correo (ResendEmailForm), que pide el correo de nuevo.
 import Link from "next/link";
+import ResendEmailForm from "@/components/auth/ResendEmailForm";
 
 export default function VerifyEmailPage() {
   return (
@@ -15,6 +17,11 @@ export default function VerifyEmailPage() {
           Puede tardar un par de minutos; mira también la carpeta de spam. Si ya tenías una cuenta con ese correo no te
           llegará nada nuevo: inicia sesión.
         </p>
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card">
+        <h2 className="text-lg font-extrabold">¿No te llegó?</h2>
+        <ResendEmailForm />
       </section>
 
       <p className="text-sm text-muted">
