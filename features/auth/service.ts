@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { AuthError } from "@supabase/supabase-js";
 import type { Result } from "@/lib/result";
 import { authRepository } from "./repository";
-import { oauthCodeSchema, oauthStartSchema, signInSchema, signUpSchema } from "./schemas";
+import { emailTokenSchema, oauthCodeSchema, oauthStartSchema, signInSchema, signUpSchema } from "./schemas";
 import type { AuthUser } from "./types";
 
 // error.code de Supabase → mensaje en español
@@ -19,6 +19,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   email_address_invalid: "Ese correo no es válido. Prueba con otro.",
   over_email_send_rate_limit: "Demasiados intentos. Espera unos minutos.",
   over_request_rate_limit: "Demasiados intentos. Espera unos minutos.",
+  otp_expired: "El enlace venció o ya se usó. Pide uno nuevo.", // verifyOtp usa este código para "vencido" y para "ya usado"
 };
 
 function toFriendlyMessage(error: AuthError) {
@@ -84,6 +85,20 @@ export const authService = {
     }
 
     const { error } = await authRepository.exchangeCodeForSession(parsed.data.code);
+    if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+
+    return { ok: true, data: null };
+  },
+
+  // Enlace del correo (confirmar cuenta o recuperar contraseña): valida lo que trae la URL y canjea el token por la sesión.
+  // La ruta /auth/confirm decide a dónde redirigir.
+  async confirmEmail(input: unknown): Promise<Result> {
+    const parsed = emailTokenSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, message: "El enlace no es válido. Pide uno nuevo." };
+    }
+
+    const { error } = await authRepository.verifyEmailToken(parsed.data.tokenHash, parsed.data.type);
     if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
 
     return { ok: true, data: null };

@@ -32,6 +32,13 @@ export const oauthCodeSchema = z.object({
   code: z.string("Falta el código de Google").min(1, "Falta el código de Google"),
 });
 
+// Lo que trae el enlace del correo (/auth/confirm?token_hash=...&type=...). "type" es una lista cerrada: solo se aceptan
+// los usos que esta app tiene (confirmar cuenta nueva y recuperar contraseña), no cualquier texto de la URL.
+export const emailTokenSchema = z.object({
+  tokenHash: z.string("Falta el código del enlace").min(1, "Falta el código del enlace"),
+  type: z.enum(["email", "signup", "recovery"], "El tipo de enlace no es válido"),
+});
+
 export const signUpSchema = z
   .object({
     email: emailRule,

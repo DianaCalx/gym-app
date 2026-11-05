@@ -2,6 +2,7 @@
 // Único archivo que llama a supabase.auth.*. Devuelve el error en vez de lanzarlo:
 // "contraseña incorrecta" es esperable, no un bug. No valida ni decide: eso es de schemas.ts y service.ts.
 import "server-only";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { AuthUser } from "./types";
 
@@ -36,6 +37,14 @@ export const authRepository = {
   async exchangeCodeForSession(code: string) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    return { error };
+  },
+
+  // Canjea el token_hash del enlace del correo por una sesión. Supabase marca el correo como confirmado (o abre la sesión
+  // de recuperación) y escribe las cookies de sesión con setAll de lib/supabase/server.ts. Un token se puede usar una vez.
+  async verifyEmailToken(tokenHash: string, type: EmailOtpType) {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
     return { error };
   },
 
