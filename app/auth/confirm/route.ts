@@ -9,6 +9,14 @@ import { authService } from "@/features/auth/service";
 // Next llama a GET cuando el navegador abre esta URL; `request.nextUrl` trae la URL ya separada en partes
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
+
+  // Correos de recuperación con el formato anterior (/auth/confirm?...&type=recovery): aquí ya no se abre sesión.
+  // Se reenvía el token a /reset-password, que lo canjea al enviar el formulario. No se llama a Supabase: el token no se gasta.
+  if (searchParams.get("type") === "recovery") {
+    const params = new URLSearchParams({ token_hash: searchParams.get("token_hash") ?? "" });
+    redirect(`/reset-password?${params}`);
+  }
+
   const next = safeRedirectPath(searchParams.get("next"));
 
   // El service valida que token_hash y type tengan forma válida; aquí solo se le pasa lo que trae la URL

@@ -11,7 +11,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
 
   return (
     <>
@@ -28,6 +28,13 @@ export default async function LoginPage({
       {error === "confirmation" && (
         <p role="alert" className="rounded-button border border-line p-3 text-sm font-semibold">
           El enlace de confirmación no es válido o ya venció. Si ya confirmaste tu correo, inicia sesión.
+        </p>
+      )}
+
+      {/* resetPasswordAction redirige aquí con ?reset=ok después de guardar la contraseña nueva */}
+      {reset === "ok" && (
+        <p role="status" className="rounded-button border border-line p-3 text-sm font-semibold">
+          Contraseña actualizada. Entra con la nueva.
         </p>
       )}
 

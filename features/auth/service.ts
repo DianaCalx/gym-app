@@ -12,6 +12,7 @@ import {
   oauthCodeSchema,
   oauthStartSchema,
   resendEmailSchema,
+  resetPasswordSchema,
   signInSchema,
   signUpSchema,
 } from "./schemas";
@@ -24,6 +25,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   user_already_exists: "Ese correo ya tiene una cuenta. Inicia sesión.",
   email_exists: "Ese correo ya tiene una cuenta. Inicia sesión.",
   weak_password: "Esa contraseña es muy débil o ya apareció en filtraciones. Prueba con otra.",
+  same_password: "Elige una contraseña distinta de la anterior.",
   email_address_invalid: "Ese correo no es válido. Prueba con otro.",
   over_email_send_rate_limit: "Demasiados intentos. Espera unos minutos.",
   over_request_rate_limit: "Demasiados intentos. Espera unos minutos.",
@@ -98,8 +100,8 @@ export const authService = {
     return { ok: true, data: null };
   },
 
-  // Enlace del correo (confirmar cuenta o recuperar contraseña): valida lo que trae la URL y canjea el token por la sesión.
-  // La ruta /auth/confirm decide a dónde redirigir.
+  // Enlace de confirmación de cuenta: valida lo que trae la URL y canjea el token por la sesión.
+  // La ruta /auth/confirm decide a dónde redirigir. (La recuperación de contraseña no pasa por aquí: ver resetPassword.)
   async confirmEmail(input: unknown): Promise<Result> {
     const parsed = emailTokenSchema.safeParse(input);
     if (!parsed.success) {
@@ -135,6 +137,32 @@ export const authService = {
 
     const { error } = await authRepository.sendPasswordReset(parsed.data.email);
     if (error) return { ok: false, message: toFriendlyMessage(error), code: error.code };
+
+    return { ok: true, data: null };
+  },
+
+  // Elegir la contraseña nueva (pantalla /reset-password). No hay sesión previa: quien manda es el token del enlace,
+  // que el repository canjea y gasta en este mismo momento.
+  async resetPassword(input: unknown): Promise<Result> {
+    const parsed = resetPasswordSchema.safeParse(input);
+    if (!parsed.success) {
+      const { fieldErrors } = z.flattenError(parsed.error);
+      // El token va en un campo oculto: su error no tiene campo donde mostrarse, se devuelve como mensaje general
+      if (fieldErrors.tokenHash) return { ok: false, message: fieldErrors.tokenHash[0] };
+      return { ok: false, fieldErrors };
+    }
+
+    // confirmPassword solo sirvió para comparar: al repository van únicamente el token y la contraseña
+    const { tokenHash, password } = parsed.data;
+    const { error, tokenUsed } = await authRepository.resetPasswordWithToken(tokenHash, password);
+    if (error) {
+      const message = toFriendlyMessage(error);
+      return {
+        ok: false,
+        message: tokenUsed ? `${message} El enlace ya se usó: pide uno nuevo en "Olvidé mi contraseña".` : message,
+        code: error.code,
+      };
+    }
 
     return { ok: true, data: null };
   },

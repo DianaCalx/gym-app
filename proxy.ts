@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Rutas que se pueden ver sin sesión (el resto exige haber entrado)
-const PUBLIC_PATHS = ["/login", "/signup", "/verify-email", "/forgot-password", "/auth"];
+const PUBLIC_PATHS = ["/login", "/signup", "/verify-email", "/forgot-password", "/reset-password", "/auth"];
 
 // Pantallas solo para quien aún no entró: con sesión iniciada se redirigen a /routines
 const AUTH_PAGES = ["/login", "/signup"];

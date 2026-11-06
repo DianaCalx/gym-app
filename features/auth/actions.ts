@@ -67,6 +67,18 @@ export async function forgotPasswordAction(_prevState: FormState, formData: Form
   };
 }
 
+// Formulario de /reset-password: canjea el token del enlace, guarda la contraseña nueva y manda al login, porque el
+// repository cerró todas las sesiones. No usa requireUser(): quien llega aquí aún no tiene sesión, la prueba es el token.
+export async function resetPasswordAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const result = await authService.resetPassword(Object.fromEntries(formData));
+
+  // Se devuelve solo el mensaje: las contraseñas NUNCA vuelven al formulario
+  if (!result.ok) return { fieldErrors: result.fieldErrors, message: result.message, code: result.code };
+
+  revalidatePath("/", "layout");
+  redirect("/login?reset=ok"); // fuera de cualquier try/catch
+}
+
 // Se usa directo como <form action={signOutAction}>: no recibe estado previo ni devuelve nada
 export async function signOutAction(): Promise<void> {
   // Aunque el aviso al servidor de Supabase fallara, la sesión local ya se borró (scope "local"): se sale igual

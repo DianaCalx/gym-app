@@ -32,11 +32,11 @@ export const oauthCodeSchema = z.object({
   code: z.string("Falta el código de Google").min(1, "Falta el código de Google"),
 });
 
-// Lo que trae el enlace del correo (/auth/confirm?token_hash=...&type=...). "type" es una lista cerrada: solo se aceptan
-// los usos que esta app tiene (confirmar cuenta nueva y recuperar contraseña), no cualquier texto de la URL.
+// Lo que trae el enlace de confirmación de cuenta (/auth/confirm?token_hash=...&type=...). "type" es una lista cerrada.
+// "recovery" NO está: el enlace de recuperación no abre sesión aquí, se canjea al enviar /reset-password (Paso 2.7).
 export const emailTokenSchema = z.object({
   tokenHash: z.string("Falta el código del enlace").min(1, "Falta el código del enlace"),
-  type: z.enum(["email", "signup", "recovery"], "El tipo de enlace no es válido"),
+  type: z.enum(["email", "signup"], "El tipo de enlace no es válido"),
 });
 
 // El correo al que se reenvía el enlace de confirmación (pantalla /verify-email). Solo se pide el correo: no hay sesión.
@@ -45,16 +45,29 @@ export const resendEmailSchema = z.object({ email: emailRule });
 // El correo de quien olvidó su contraseña (pantalla /forgot-password). Igual que el reenvío: sin sesión, solo el correo.
 export const forgotPasswordSchema = z.object({ email: emailRule });
 
+// Reglas de la contraseña nueva, escritas una vez: las usan el registro y la recuperación (/reset-password)
+const passwordRule = z
+  .string("Escribe una contraseña")
+  .min(8, "La contraseña debe tener al menos 8 caracteres")
+  .max(72, "La contraseña no puede pasar de 72 caracteres"); // bcrypt solo usa los primeros 72 bytes
+const confirmPasswordRule = z.string("Repite la contraseña").min(1, "Repite la contraseña");
+const passwordsMatch = (data: { password: string; confirmPassword: string }) => data.password === data.confirmPassword;
+const passwordsMatchError = {
+  error: "Las contraseñas no coinciden",
+  path: ["confirmPassword"], // el error se muestra debajo de ese campo
+};
+
 export const signUpSchema = z
+  .object({ email: emailRule, password: passwordRule, confirmPassword: confirmPasswordRule })
+  .refine(passwordsMatch, passwordsMatchError);
+
+// El formulario de /reset-password: el token del enlace (viaja en un campo oculto) y la contraseña nueva dos veces, con las
+// mismas reglas que el registro. No hay correo ni sesión: quién eres lo decide el token al canjearlo.
+const invalidLink = "El enlace no es válido. Pide uno nuevo.";
+export const resetPasswordSchema = z
   .object({
-    email: emailRule,
-    password: z
-      .string("Escribe una contraseña")
-      .min(8, "La contraseña debe tener al menos 8 caracteres")
-      .max(72, "La contraseña no puede pasar de 72 caracteres"), // bcrypt solo usa los primeros 72 bytes
-    confirmPassword: z.string("Repite la contraseña").min(1, "Repite la contraseña"),
+    tokenHash: z.string(invalidLink).min(1, invalidLink),
+    password: passwordRule,
+    confirmPassword: confirmPasswordRule,
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    error: "Las contraseñas no coinciden",
-    path: ["confirmPassword"], // el error se muestra debajo de ese campo
-  });
+  .refine(passwordsMatch, passwordsMatchError);

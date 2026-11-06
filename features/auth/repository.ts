@@ -40,8 +40,8 @@ export const authRepository = {
     return { error };
   },
 
-  // Canjea el token_hash del enlace del correo por una sesión. Supabase marca el correo como confirmado (o abre la sesión
-  // de recuperación) y escribe las cookies de sesión con setAll de lib/supabase/server.ts. Un token se puede usar una vez.
+  // Canjea el token_hash del enlace de confirmación de cuenta por una sesión. Supabase marca el correo como confirmado y
+  // escribe las cookies de sesión con setAll de lib/supabase/server.ts. Un token se puede usar una vez.
   async verifyEmailToken(tokenHash: string, type: EmailOtpType) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
@@ -59,11 +59,33 @@ export const authRepository = {
 
   // Pide a Supabase el correo de recuperación de contraseña. Si el correo no tiene cuenta, Supabase responde igual (200)
   // y no envía nada. No se pasa redirectTo: a dónde llega el usuario lo define la plantilla "Reset password" del panel
-  // (/auth/confirm?...&type=recovery&next=/reset-password), que usa la ruta del Paso 2.3.
+  // (/reset-password?token_hash=...). El enlace NO abre sesión al pulsarlo: el token se canjea al enviar el formulario.
   async sendPasswordReset(email: string) {
     const supabase = await createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email);
     return { error };
+  },
+
+  // Cambia la contraseña con el enlace de recuperación, todo en una sola petición. Hasta aquí NO había sesión:
+  //   1) verifyOtp canjea el token (se gasta) y abre una sesión   2) updateUser guarda la contraseña nueva con esa sesión
+  //   3) signOut "global" cierra la sesión en TODOS los dispositivos (también la que acabamos de abrir).
+  // Así nunca queda una sesión abierta sin contraseña nueva. `tokenUsed` dice si el token ya se gastó: si updateUser falla
+  // (p. ej. same_password), el enlace ya no sirve y el service lo avisa. Si el cierre global falla, la contraseña ya cambió.
+  async resetPasswordWithToken(tokenHash: string, password: string) {
+    const supabase = await createClient();
+
+    const { error: verifyError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+    if (verifyError) return { error: verifyError, tokenUsed: false };
+
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    if (updateError) {
+      await supabase.auth.signOut({ scope: "local" }); // no dejar una sesión abierta sin haber cambiado la contraseña
+      return { error: updateError, tokenUsed: true };
+    }
+
+    const { error: signOutError } = await supabase.auth.signOut({ scope: "global" });
+    if (signOutError) console.error("[auth] no se pudieron cerrar las sesiones:", signOutError.code, signOutError.message);
+    return { error: null, tokenUsed: true };
   },
 
   // scope "local": cierra solo esta sesión. El valor por defecto de Supabase es "global" (cierra todos los dispositivos).

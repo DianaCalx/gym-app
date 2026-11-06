@@ -1,7 +1,7 @@
 // app/(auth)/forgot-password/page.tsx
 // Pantalla "/forgot-password" (Paso 2.6): quien olvidó su contraseña escribe su correo y recibe un enlace para elegir otra.
 // Es pública (está en PUBLIC_PATHS de proxy.ts) porque quien llega aquí no tiene sesión. Corre en el servidor y solo arma
-// la pantalla; el formulario es un componente. El enlace del correo llega a /auth/confirm (Paso 2.3) y de ahí a /reset-password.
+// la pantalla; el formulario es un componente. El enlace del correo llega directo a /reset-password (Paso 2.7).
 import Link from "next/link";
 import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
